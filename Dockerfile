@@ -20,9 +20,9 @@ WORKDIR /src
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates gnupg lsb-release apt-transport-https && \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-      | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg && \
+    | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
-      > /etc/apt/sources.list.d/pgdg.list && \
+    > /etc/apt/sources.list.d/pgdg.list && \
     apt-get update
 
 # Toolchain + PGXS headers + deps (DuckDB dev comes from Debian)
@@ -30,7 +30,7 @@ RUN apt-get install -y --no-install-recommends \
     build-essential cmake git pkg-config \
     libcurl4-openssl-dev libssl-dev uuid-dev \
     libpq-dev postgresql-server-dev-18 libduckdb-dev \
-  && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # ---- clickhouse_fdw ----
 RUN git clone --depth=1 https://github.com/ildus/clickhouse_fdw.git
@@ -63,12 +63,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Contribs + pg_cron + PostGIS + CA certs
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      postgresql-contrib-18 \
-      postgresql-18-cron \
-      postgresql-18-postgis-3 \
-      postgresql-18-postgis-3-scripts \
-      ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+    postgresql-contrib-18 \
+    postgresql-18-cron \
+    postgresql-18-postgis-3 \
+    postgresql-18-postgis-3-scripts \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy built artifacts from build stage (libs + extension control/sql)
 COPY --from=build /usr/lib/postgresql/18/lib/ /usr/lib/postgresql/18/lib/
@@ -83,4 +83,4 @@ CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 \
-  CMD pg_isready -U postgres || exit 1
+    CMD pg_isready -U postgres || exit 1

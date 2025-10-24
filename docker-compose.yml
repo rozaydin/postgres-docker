@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres-datalake:
+    image: rozaydin/postgres-datalake:latest
+    container_name: postgres-datalake
+    environment:
+      POSTGRES_PASSWORD: your_secure_password
+      POSTGRES_DB: datalake
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-datalake-data:/var/lib/postgresql/data
+      # Optionally mount custom config
+      # - ./custom-postgresql.conf:/etc/postgresql/postgresql.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - datalake-network
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - postgres-datalake
+    networks:
+      - datalake-network
+
+volumes:
+  postgres-datalake-data:
+  pgadmin-data:
+
+networks:
+  datalake-network:
+    driver: bridge

@@ -14,8 +14,14 @@ CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 CREATE EXTENSION IF NOT EXISTS file_fdw;
 
 -- --- External FDWs ---
-CREATE EXTENSION IF NOT EXISTS clickhouse_fdw;
-CREATE EXTENSION IF NOT EXISTS duckdb_fdw;
+-- Note: ClickHouse FDW not available for PostgreSQL 18 yet
+-- CREATE EXTENSION IF NOT EXISTS clickhouse_fdw;
+-- Note: DuckDB FDW has build issues with PostgreSQL 18, temporarily disabled
+-- CREATE EXTENSION IF NOT EXISTS duckdb_fdw;
+
+-- --- File Format Support ---
+-- Note: pg_parquet requires Rust toolchain, temporarily commented out
+-- CREATE EXTENSION IF NOT EXISTS parquet;
 
 -- --- Partitioning / Scheduling ---
 CREATE EXTENSION IF NOT EXISTS pg_partman;

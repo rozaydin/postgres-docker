@@ -1,13 +1,12 @@
 # ===========================================================
 # PostgreSQL 18 DataLake Image (Debian Bookworm)
 # Includes:
-#   - clickhouse_fdw
-#   - duckdb_fdw (Parquet/CSV/JSON)
-#   - pg_partman
-#   - pgvector
-#   - pg_cron
+#   - pg_partman (automated partitioning)
+#   - pgvector (vector similarity search)
+#   - pg_cron (job scheduling)
 #   - PostGIS (postgis, raster, topology)
 #   - contrib (uuid-ossp, pgcrypto, hstore, ltree, tablefunc, postgres_fdw, file_fdw)
+# Note: External FDWs temporarily disabled due to PostgreSQL 18 compatibility issues
 # ===========================================================
 
 # ---------- BUILD STAGE ----------
@@ -25,23 +24,45 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     > /etc/apt/sources.list.d/pgdg.list && \
     apt-get update
 
-# Toolchain + PGXS headers + deps (DuckDB dev comes from Debian)
+# Toolchain + PGXS headers + deps
 RUN apt-get install -y --no-install-recommends \
     build-essential cmake git pkg-config \
     libcurl4-openssl-dev libssl-dev uuid-dev \
-    libpq-dev postgresql-server-dev-18 libduckdb-dev \
+    libpq-dev postgresql-server-dev-18 \
+    wget unzip \
     && rm -rf /var/lib/apt/lists/*
 
+# Note: ClickHouse FDW currently has compatibility issues with PostgreSQL 18
+# Skipping ClickHouse FDW for now - can be added when compatible version is available
+# 
 # ---- clickhouse_fdw ----
-RUN git clone --depth=1 https://github.com/ildus/clickhouse_fdw.git
-WORKDIR /src/clickhouse_fdw
-RUN mkdir build && cd build && cmake .. && make -j"$(nproc)" && make install
+# RUN git clone --depth=1 https://github.com/ildus/clickhouse_fdw.git
+# WORKDIR /src/clickhouse_fdw  
+# RUN mkdir build && cd build && cmake .. && make -j"$(nproc)" && make install
 
+# Note: DuckDB FDW also has build issues with PostgreSQL 18 build system
+# Temporarily disabling until we can resolve the build configuration
+#
 # ---- duckdb_fdw ----
-WORKDIR /src
-RUN git clone --depth=1 https://github.com/alitrack/duckdb_fdw.git
-WORKDIR /src/duckdb_fdw
-RUN make -j"$(nproc)" && make install
+# WORKDIR /src
+# RUN git clone --depth=1 https://github.com/duckdb/duckdb_fdw.git || \
+#     git clone --depth=1 https://github.com/alitrack/duckdb_fdw.git
+# WORKDIR /src/duckdb_fdw
+# RUN make USE_PGXS=1 -j"$(nproc)" && make USE_PGXS=1 install
+
+# Note: pg_parquet requires Rust toolchain which significantly increases build time
+# For now, using built-in file_fdw for CSV/TSV support
+# Parquet support can be added in future versions
+#
+# ---- pg_parquet (requires Rust toolchain) ----
+# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+#     . ~/.cargo/env
+# WORKDIR /src
+# RUN . ~/.cargo/env && \
+#     git clone --depth=1 https://github.com/adriangb/pg_parquet.git
+# WORKDIR /src/pg_parquet
+# RUN . ~/.cargo/env && \
+#     make -j"$(nproc)" && make install
 
 # ---- pg_partman ----
 WORKDIR /src
